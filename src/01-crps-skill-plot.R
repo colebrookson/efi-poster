@@ -12,7 +12,7 @@ comb_preds_sh <- readr::read_csv(here::here(
 
 comb_preds_sh_summarized <- comb_preds_sh |>
   dplyr::group_by(horizon, variable) |>
-  dplyr::summarize(median_est = stats::median(estimate)) |>
+  dplyr::summarize(median_est = stats::median(cv)) |> # CV here, maybe median?
   dplyr::ungroup() |>
   dplyr::mutate(
     variable = forcats::fct_recode(
@@ -52,7 +52,7 @@ color_palette <- MoMAColors::moma.colors(
   type = "discrete"
 )
 
-ggplot2::ggplot(
+p <- ggplot2::ggplot(
   comb_preds_sh_summarized |>
     dplyr::mutate(
       variable = forcats::fct_reorder(variable, dplyr::desc(median_est))
@@ -67,15 +67,24 @@ ggplot2::ggplot(
     shape = 21, colour = "black",
     position = ggplot2::position_dodge(width = 0.6), size = 4
   ) +
-  ggplot2::scale_fill_manual(values = color_palette) +
+  ggplot2::scale_fill_manual("Horizon (days)", values = color_palette) +
   ggplot2::guides(
     color = ggplot2::guide_legend(title = "Horizon (days)")
   ) +
-  ggplot2::ylab("CRPS Skill (ML vs Climatological)") +
+  ggplot2::labs(x = "Variable", y = "CRPS Skill (ML vs Climatological)") +
   ggplot2::theme_bw() +
   ggplot2::theme(
     axis.title.x = ggplot2::element_blank(),
     axis.title.y = ggplot2::element_text(size = 16),
     axis.text = ggplot2::element_text(size = 12),
     axis.text.x = ggplot2::element_text(angle = 45, vjust = 0.6)
-  )
+  ) +
+  theme_base()
+
+ggplot2::ggsave(
+  filename = here::here("./figs/GAM_crps_skill.png"),
+  plot = p,
+  width = 16,
+  height = 8,
+  dpi = 300
+)
