@@ -1,5 +1,14 @@
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(forcats)
+
 comb_preds_sh <- read_csv("GAM_crps_skill_summarized.csv")
 
+# MY PATH
+# comb_preds_sh <- readr::read_csv(here::here(
+#   "./data/GAM_crps_skill_summarized.csv"
+# ))
 
 comb_preds_sh_summarized <- comb_preds_sh |>
     group_by(horizon, variable) |>
