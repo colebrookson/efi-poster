@@ -3,12 +3,12 @@
 #' April 2025
 
 # 1. [SET UP ] -----------------------------------------------------------------
+source(here::here("./src/00-global-funs.R"))
 library(ggplot2)
 # read in data
 comb_preds_sh <- readr::read_csv(here::here(
   "./data/GAM_crps_skill_summarized.csv"
 ))
-
 
 comb_preds_sh_summarized <- comb_preds_sh |>
   dplyr::group_by(horizon, variable) |>
@@ -28,11 +28,17 @@ comb_preds_sh_summarized <- comb_preds_sh |>
   )
 # 2. [PLOT] --------------------------------------------------------------------
 comb_preds_sh_summarized |>
-  dplyr::mutate(variable = forcats::fct_reorder(variable, dplyr::desc(median_est)))
+  dplyr::mutate(variable = forcats::fct_reorder(
+    variable,
+    dplyr::desc(median_est)
+  ))
 # across-site variation in CRPS-based skill
 ggplot(
   comb_preds_sh_summarized |>
-    dplyr::mutate(variable = forcats::fct_reorder(variable, dplyr::desc(median_est))),
+    dplyr::mutate(variable = forcats::fct_reorder(
+      variable,
+      dplyr::desc(median_est)
+    )),
   aes(x = variable, y = median_est)
 ) +
   geom_point() +
@@ -54,13 +60,14 @@ ggplot2::ggplot(
   ggplot2::aes(
     x = variable, y = median_est,
     group = base::factor(horizon),
-    color = base::factor(horizon)
+    fill = base::factor(horizon)
   )
 ) +
   ggplot2::geom_point(
-    position = ggplot2::position_dodge(width = 0.6), size = 3
+    shape = 21, colour = "black",
+    position = ggplot2::position_dodge(width = 0.6), size = 4
   ) +
-  ggplot2::scale_color_manual(values = color_palette) +
+  ggplot2::scale_fill_manual(values = color_palette) +
   ggplot2::guides(
     color = ggplot2::guide_legend(title = "Horizon (days)")
   ) +
