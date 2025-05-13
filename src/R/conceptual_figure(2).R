@@ -6,9 +6,9 @@ x_ic <- log(1000)
 tau_ic <- 100
 
 a_obs <- 3
-r_obs <- .5
-a_add <- 2
-r_add <- 2
+r_obs <- 3
+a_add <- 0.5
+r_add <- 0.5
 
 # log y.samp if y isn't logged!
 init <- list()
@@ -56,9 +56,47 @@ for (t in 2:n) {
   y_pred[t] <- rnorm(1, int + y[t] * b1, sig2)
 }
 
-plot(y, ylim = c(-.7, 3))
+plot(y)
 lines(y_pred, col = "red")
-# Uncertainty decomposition
+# Combine plot_data_1 and plot_data_2 into a single dataframe
+plot_data_1 <- data.frame(
+  timestep = rep(1:n, 2),
+  value = c(y, y_pred),
+  variable = rep(c("Observed", "Predicted"), each = n)
+)
+plot_data_combined <- rbind(
+  cbind(plot_data_2, panel = "Panel 1"),
+  cbind(plot_data_1, panel = "Panel 2")
+)
+
+# Plot using ggplot2 with facets for the panels
+p_combined <- ggplot(plot_data_combined, aes(x = timestep, y = value, color = variable)) +
+  geom_line() +
+  scale_color_manual(
+    "",
+    values = c("#0072B2", "#D55E00"),
+    labels = c("Observed", "Predicted")
+  ) +
+  labs(y = "Variable", x = "Time step") +
+  theme_base(base_size = 18) +
+  theme(
+    legend.position = c(0.1, 0.1), # Position the legend inside the plot panel
+    strip.text = element_blank(),
+    legend.background = element_rect(fill = "white"),
+    legend.key = element_rect(fill = "white"),
+    axis.text.y = element_blank()
+  ) +
+  facet_wrap(~panel, ncol = 1, scales = "free_y")
+
+# Print the combined plot
+print(p_combined)
+ggsave(
+  filename = here::here("figs", "varaible_stack.png"),
+  plot = p_combined,
+  width = 8,
+  height = 6,
+  dpi = 300
+) # Uncertainty decomposition
 
 obs_var <- matrix(0, ncol = 1, nrow = n)
 obs_var[1] <- 15
@@ -98,14 +136,33 @@ ggplot(data = df, aes(x = timestep, y = variance, fill = variable)) +
   scale_fill_brewer(palette = "Paired") +
   theme_bw()
 
-# Forecast 
+# Forecast
 pe <- matrix(0, ncol = 1, nrow = n)
-pe[1] <- y_pred[1] - y[1]/ 25 
+pe[1] <- y_pred[1] - y[1] / 25
 for (i in 2:n) {
-pe[i] <- (y_pred[i] - y[i])/25 + pe[i - 1] + rnorm(1, 0, 1)
+  pe[i] <- (y_pred[i] - y[i]) / 25 + pe[i - 1] + rnorm(1, 0, 1)
 }
 
 intrinsic <- -.5 * pe
-plot(intrinsic, type = "l", ylim = c(-8, 10))
-lines(pe, col = "red")
+# Reshape the data for plotting
+plot_data <- data.frame(
+  timestep = rep(1:n, 2),
+  value = c(intrinsic, pe),
+  variable = rep(c("Intrinsic", "PE"), each = n)
+)
 
+# Plot using ggplot2
+p2 <- ggplot(plot_data, aes(x = timestep, y = value, color = variable)) +
+  geom_line() +
+  scale_color_manual(
+    values = c("black", "red"),
+    labels = c("Realized Predictability", "Intrinsic Predictability")
+  ) +
+  labs(y = "Standardized Error (WPE vs. RE)", color = "Legend") +
+  theme_base() +
+  theme(
+    legend.position = c(0.2, 0.1), # Position the legend inside the plot panel
+    legend.background = element_rect(fill = "white", color = "black"),
+    legend.key = element_rect(fill = "white"),
+    axis.text.y = element_blank()
+  )

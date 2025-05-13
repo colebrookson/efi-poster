@@ -12,7 +12,7 @@ comb_preds_sh <- readr::read_csv(here::here(
 
 comb_preds_sh_summarized <- comb_preds_sh |>
   dplyr::group_by(horizon, variable) |>
-  dplyr::summarize(median_est = stats::median(median_est)) |> # CV here, maybe median?
+  dplyr::summarize(median_est = stats::median(estimate)) |> # CV here, maybe median?
   dplyr::ungroup() |>
   dplyr::mutate(
     variable = forcats::fct_recode(
@@ -23,7 +23,7 @@ comb_preds_sh_summarized <- comb_preds_sh |>
       GCC90 = "gcc_90",
       LE = "le",
       NEE = "nee",
-      `Chlorophyll a` = "chla"
+      `Chl. A` = "chla"
     )
   )
 # 2. [PLOT] --------------------------------------------------------------------

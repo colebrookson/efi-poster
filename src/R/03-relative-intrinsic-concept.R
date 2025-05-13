@@ -184,8 +184,7 @@ simulate_model <- function(a_obs, r_obs, a_add, r_add, model_type) {
     guides(
       colour = guide_legend(position = "inside")
     ) +
-    åå
-  theme_base() +
+    theme_base() +
     theme(
       legend.position.inside = c(0.8, 0.2)
     )
@@ -229,3 +228,97 @@ simulate_model(
 # a_add <- 5
 # r_add <- 5 # Low process precision
 # model_type <- "Noisy Process"
+
+# simulating a plot for the poster
+
+#' [LIBRARIES] -----------------------------------------------------------------
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(here)
+
+#' [SIMULATE RELATIVE UNCERTAINTY] --------------------------------------------
+simulate_relative_uncertainty <- function(model_type, timesteps = 100) {
+  set.seed(ifelse(model_type == "noisy_process", 42, 24))
+
+  time <- seq_len(timesteps)
+
+  # initial condition decays over time
+  ic <- exp(-seq(0, 5, length.out = timesteps))
+
+  # process and observation vary by model type
+  if (model_type == "noisy_process") {
+    process <- 0.4 + 0.1 * sin(seq(0, 3 * pi, length.out = timesteps)) +
+      rnorm(timesteps, sd = 0.05)
+    observation <- 0.15 + rnorm(timesteps, sd = 0.05)
+  } else if (model_type == "noisy_observation") {
+    process <- 0.15 + rnorm(timesteps, sd = 0.05)
+    observation <- 0.4 + 0.1 * sin(seq(0, 3 * pi, length.out = timesteps)) +
+      rnorm(timesteps, sd = 0.05)
+  }
+
+  parameters <- 0.2 + rnorm(timesteps, sd = 0.05)
+
+  # combine into matrix and normalize
+  raw <- cbind(ic, observation, parameters, process)
+  raw <- pmax(raw, 1e-3) # enforce positivity
+  normalized <- raw / rowSums(raw)
+
+  df <- as.data.frame(normalized)
+  df$time <- time
+  df_long <- pivot_longer(df, -time, names_to = "variable", values_to = "proportion")
+
+  return(df_long)
+}
+
+#' [SIMULATE BOTH MODELS] -----------------------------------------------------
+df_process <- simulate_relative_uncertainty("noisy_process")
+df_process$model <- "Noisy process model"
+
+df_observation <- simulate_relative_uncertainty("noisy_observation")
+df_observation$model <- "Noisy observation model"
+
+df_all <- bind_rows(df_process, df_observation)
+
+#' [PLOT STACKED AREA PLOTS] --------------------------------------------------
+p <- ggplot(df_all, aes(x = time, y = proportion, fill = variable)) +
+  geom_area(color = "black", size = 0.2, alpha = 0.8) +
+  facet_wrap(~model, ncol = 1) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  labs(
+    x = "Time step",
+    y = "Proportion of total variance",
+    fill = "Uncertainty type"
+  ) +
+  scale_fill_manual(
+    values = c(
+      "#009E73",
+      "#E69F00",
+      "#56B4E9",
+      "#CC79A7"
+    ),
+    labels = c(
+      "ic" = "Init. cond", "observation" = "Observation ",
+      "parameters" = "Parameter", "process" = "Process"
+    )
+  ) +
+  theme_base(base_size = 18) +
+  theme(
+    legend.position = "right",
+    legend.title = element_text(size = 14),
+    strip.text = element_blank(),
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 11)
+  )
+
+#' [SAVE FIGURE] --------------------------------------------------------------
+ggsave(
+  filename = here::here("figs", "relative_uncertainty_stack.png"),
+  plot = p,
+  width = 8,
+  height = 6,
+  dpi = 300
+)
+
+# print to device as well
+print(p)
