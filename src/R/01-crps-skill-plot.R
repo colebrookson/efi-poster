@@ -3,7 +3,7 @@
 #' April 2025
 
 # 1. [SET UP ] -----------------------------------------------------------------
-source(here::here("./src/00-global-funs.R"))
+source(here::here("./src/R/00-global-funs.R"))
 library(ggplot2)
 # read in data
 comb_preds_sh <- readr::read_csv(here::here(
@@ -12,7 +12,7 @@ comb_preds_sh <- readr::read_csv(here::here(
 
 comb_preds_sh_summarized <- comb_preds_sh |>
   dplyr::group_by(horizon, variable) |>
-  dplyr::summarize(median_est = stats::median(cv)) |> # CV here, maybe median?
+  dplyr::summarize(median_est = stats::median(median_est)) |> # CV here, maybe median?
   dplyr::ungroup() |>
   dplyr::mutate(
     variable = forcats::fct_recode(
@@ -84,7 +84,7 @@ p <- ggplot2::ggplot(
 ggplot2::ggsave(
   filename = here::here("./figs/GAM_crps_skill.png"),
   plot = p,
-  width = 10,
+  width = 11,
   height = 5,
   dpi = 300
 )
