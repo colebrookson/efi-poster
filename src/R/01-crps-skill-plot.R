@@ -84,7 +84,7 @@ p <- ggplot2::ggplot(
 ggplot2::ggsave(
   filename = here::here("./figs/GAM_crps_skill.png"),
   plot = p,
-  width = 16,
-  height = 8,
+  width = 10,
+  height = 5,
   dpi = 300
 )
