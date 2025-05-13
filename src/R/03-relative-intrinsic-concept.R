@@ -305,7 +305,8 @@ p <- ggplot(df_all, aes(x = time, y = proportion, fill = variable)) +
   theme_base(base_size = 18) +
   theme(
     legend.position = "right",
-    legend.title = element_text(size = 14),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10),
     strip.text = element_blank(),
     axis.title = element_text(size = 13),
     axis.text = element_text(size = 11)

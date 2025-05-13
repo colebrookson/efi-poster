@@ -71,7 +71,7 @@ plot_data_combined <- rbind(
 
 # Plot using ggplot2 with facets for the panels
 p_combined <- ggplot(plot_data_combined, aes(x = timestep, y = value, color = variable)) +
-  geom_line() +
+  geom_line(linewidth = 1.2) +
   scale_color_manual(
     "",
     values = c("#0072B2", "#D55E00"),
@@ -80,8 +80,10 @@ p_combined <- ggplot(plot_data_combined, aes(x = timestep, y = value, color = va
   labs(y = "Variable", x = "Time step") +
   theme_base(base_size = 18) +
   theme(
-    legend.position = c(0.1, 0.1), # Position the legend inside the plot panel
+    legend.position = c(0.1, 0.12), # Position the legend inside the plot panel
     strip.text = element_blank(),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 10),
     legend.background = element_rect(fill = "white"),
     legend.key = element_rect(fill = "white"),
     axis.text.y = element_blank()
@@ -145,14 +147,14 @@ for (i in 2:n) {
 
 intrinsic <- -.5 * pe
 # Reshape the data for plotting
-plot_data <- data.frame(
+plot_data_obs <- data.frame(
   timestep = rep(1:n, 2),
   value = c(intrinsic, pe),
   variable = rep(c("Intrinsic", "PE"), each = n)
 )
 
 # Plot using ggplot2
-p2 <- ggplot(plot_data, aes(x = timestep, y = value, color = variable)) +
+p2 <- ggplot(plot_data_obs, aes(x = timestep, y = value, color = variable)) +
   geom_line() +
   scale_color_manual(
     values = c("black", "red"),
@@ -166,3 +168,4 @@ p2 <- ggplot(plot_data, aes(x = timestep, y = value, color = variable)) +
     legend.key = element_rect(fill = "white"),
     axis.text.y = element_blank()
   )
+p2
