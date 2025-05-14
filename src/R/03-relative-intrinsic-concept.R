@@ -323,3 +323,65 @@ ggsave(
 
 # print to device as well
 print(p)
+
+
+# length of time series
+n <- 100
+time <- 1:n
+
+# scenario 1: high process noise
+re_proc <- jitter(rep(0.85, n), amount = 0.03)
+wpe_proc <- jitter(rep(0.95, n), amount = 0.02)
+
+# scenario 2: high observation noise
+re_obs <- jitter(rep(0.93, n), amount = 0.02)
+wpe_obs <- jitter(rep(0.91, n), amount = 0.02)
+
+# build data frames
+df_sim <- data.frame(
+  time = rep(time, 2),
+  RE = c(re_proc, re_obs),
+  WPE = c(wpe_proc, wpe_obs),
+  model = factor(
+    rep(c("High Process Noise", "High Observation Noise"), each = n),
+    levels = c("High Process Noise", "High Observation Noise") # this line controls order
+  )
+)
+
+
+# reshape to long form
+df_long <- df_sim |>
+  pivot_longer(cols = c("RE", "WPE"), names_to = "Entropy", values_to = "value")
+
+# plot
+p3 <- ggplot(df_long, aes(x = time, y = value, color = Entropy)) +
+  geom_line(size = 1) +
+  facet_wrap(~model, ncol = 1) +
+  labs(
+    x = "Time step",
+    y = "Normalized Entropy"
+  ) +
+  scale_color_manual(
+    values = c("WPE" = "#1B9E77", "RE" = "#7570B3"),
+    labels = c(
+      "WPE" = "Weighted Permutation Entropy",
+      "RE" = "Realized Entropy"
+    )
+  ) +
+  theme_base(base_size = 18) +
+  theme(
+    legend.position = c(0.2, 0.1), # Position the legend inside the plot panel
+    legend.title = element_blank(),
+    axis.text.y = element_blank(),
+    legend.text = element_text(size = 10),
+    strip.text = element_blank(),
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 11)
+  )
+ggsave(
+  filename = here::here("figs", "expected_wpe_vs_re.png"),
+  p3,
+  width = 8,
+  height = 6,
+  dpi = 300
+)
